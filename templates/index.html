@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Text Improver</title>
+    <style>
+        h1 {
+          text-align: center;
+        }
+
+        .window {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        button {
+            display: block;
+            margin-top: 10px;
+        }
+
+        #loading-message {
+            position: relative; /* Изменено на относительное позиционирование */
+            text-align: center;
+            margin-top: 40px; /* Отступ сверху для размещения ниже других дивов */
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Text Improver</h1>
+    <form method="POST" action="/process">
+        <div class="window">
+            <label for="text">Enter Text for Analysis:</label>
+            <textarea id="text" name="text" rows="4" cols="50" required></textarea>
+        </div>
+
+        <div class="window">
+            <label for="replacement">Enter Replacement Phrase:</label>
+            <textarea type="text" id="replacement" name="replacement" rows="4" cols="50"required></textarea>
+        </div>
+
+        <div class="window">
+            <label for="value_thresh">Select Threshold Value:</label>
+            <input type="range" id="value_thresh" name="value_thresh" min="0" max="1" step="0.01" value="0.7">
+            <span id="thresh_value">0.7</span>
+        </div>
+
+        <input type="submit" value="Analyze Text" onclick="return analyzeText();">
+
+        <div id="loading-message" class="loading-message" style="display: none;">
+            Wait a moment, it might take some time ^_^ 
+            <div>
+                <img src="https://i.stack.imgur.com/SBv4T.gif" alt="Loading">
+            </div>
+        </div>
+
+        <div id="result-container">
+            <!-- Здесь будут отображаться результаты -->
+        </div>
+    </form>
+</body>
+
+<script>
+    document.getElementById("value_thresh").addEventListener("input", function() {
+        document.getElementById("thresh_value").textContent = this.value;
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const analyzeButton = document.querySelector("input[type='submit']");
+        const loadingMessage = document.getElementById("loading-message");
+        const resultContainer = document.getElementById('result-container');
+
+        analyzeButton.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            loadingMessage.style.display = "block";
+
+            analyzeText();
+        });
+
+        function analyzeText() {
+            resultContainer.innerHTML = '';
+            var text = document.getElementById('text').value;
+            var replacement = document.getElementById('replacement').value;
+            var value_thresh = parseFloat(document.getElementById('value_thresh').value);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/process', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var results = JSON.parse(xhr.responseText);
+                    resultContainer.innerHTML = '';
+                    results.forEach(function (result) {
+                        var resultDiv = document.createElement('div');
+                        resultDiv.innerHTML = 'Original Sentence: ' + result.original_sentence + '<br>' +
+                            'Improvement: ' + result.improvement + '<br>' +
+                            'Similarity Score: ' + result.similarity_score.toFixed(2) + '<br><br>';
+                        resultContainer.appendChild(resultDiv);
+                    });
+                    loadingMessage.style.display = "none";
+                }
+            };
+
+            var data = 'text=' + encodeURIComponent(text) + '&replacement=' + encodeURIComponent(replacement) + '&value_thresh=' + value_thresh;
+            xhr.send(data);
+        }
+    });
+</script>
+
+</html>

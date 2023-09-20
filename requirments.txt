@@ -1,0 +1,9 @@
+pandas
+numpy
+nltk
+nltk.tokenize import word_tokenize, sent_tokenize
+spacy
+from sklearn.metrics.pairwise import cosine_similarity
+Caribe
+from flask import Flask, request, render_template
+java
